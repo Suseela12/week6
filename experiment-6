@@ -1,0 +1,85 @@
+!pip install -q google-genai
+----------------------------------------------------------
+from google.colab import userdata
+from google import genai
+import time
+
+api_key = userdata.get("GEMINI_API_KEY")
+client = genai.Client(api_key=api_key)
+
+MODEL = "gemini-3.8-flash"
+
+print("Gemini API connected successfully!")
+------------------------------------------------------------------
+def run_prompt(prompt):
+    for attempt in range(5):
+        try:
+            response = client.models.generate_content(
+                model=MODEL,
+                contents=prompt,
+                config={"temperature": 0.3}
+            )
+            return response.text.strip() if response.text else "No response"
+
+        except Exception as e:
+            error = str(e)
+
+            if "429" in error or "RESOURCE_EXHAUSTED" in error:
+                return "API quota exceeded. Try again when quota is available."
+
+            if ("503" in error or "UNAVAILABLE" in error) and attempt < 4:
+                time.sleep(2 ** attempt)
+            else:
+                return "API Error: " + error
+    ---------------------------------------------------------------
+    base_question = "Explain the importance of exercise."
+
+baseline_prompt = base_question
+
+role_prompt = """
+You are a motivational fitness coach.
+Explain the importance of exercise.
+"""
+
+negative_prompt = """
+You are a motivational fitness coach.
+Do not use any medical jargon.
+Do not mention weight loss.
+
+Explain the importance of exercise.
+"""
+
+print("All three prompts are ready.")
+--------------------------
+print("=== BASELINE ===")
+
+baseline_response = run_prompt(baseline_prompt)
+
+print(baseline_response)
+-------------------------------------
+print("=== ROLE-BASED (FITNESS COACH) ===")
+
+role_response = run_prompt(role_prompt)
+
+print(role_response)
+---------------------------------------------
+print("=== ROLE + NEGATIVE PROMPTING ===")
+
+negative_response = run_prompt(negative_prompt)
+
+print(negative_response)
+----------------------------------------------------
+print("=" * 60)
+print("COMPARISON OF PROMPTING METHODS")
+print("=" * 60)
+
+print("\n1. BASELINE RESPONSE:\n")
+print(baseline_response)
+
+print("\n2. ROLE-BASED RESPONSE:\n")
+print(role_response)
+
+print("\n3. ROLE + NEGATIVE RESPONSE:\n")
+print(negative_response)
+---------------------------
+
