@@ -82,4 +82,44 @@ print(role_response)
 print("\n3. ROLE + NEGATIVE RESPONSE:\n")
 print(negative_response)
 ---------------------------
+def analyze_response(response):
+    text = response.lower()
 
+    medical_terms = [
+        "cardiovascular", "metabolism", "hypertension",
+        "aerobic", "physiological"
+    ]
+
+    restricted_terms = ["weight loss", "lose weight", "losing weight"]
+
+    medical_found = [
+        term for term in medical_terms if term in text
+    ]
+
+    restricted_found = [
+        term for term in restricted_terms if term in text
+    ]
+
+    return medical_found, restricted_found
+
+
+medical_terms, weight_terms = analyze_response(negative_response)
+
+print("=== ANALYSIS ===")
+
+print("\nTone:")
+print("Baseline: General and informative.")
+print("Role-based: Expected to be motivational and encouraging.")
+print("Role + negative: Expected to be motivational and simple.")
+
+print("\nVocabulary:")
+if medical_terms:
+    print("Possible medical jargon detected:", medical_terms)
+else:
+    print("No listed medical jargon detected.")
+
+print("\nNegative constraint: Do not mention weight loss.")
+if weight_terms:
+    print("FAIL - Restricted topic mentioned:", weight_terms)
+else:
+    print("PASS - No listed weight-loss phrase detected.")
